@@ -182,3 +182,27 @@ footer {
 .approach-card:hover {
     transform: translateY(-5px);
 }
+
+.reaction-stages {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin: 3rem 0;
+}
+
+.stage {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-left: 3px solid var(--secondary-color);
+    transition: transform 0.3s ease;
+}
+
+.stage:hover {
+    transform: translateY(-5px);
+}
+
+.ethical-principles li {
+    margin-bottom: 1.5rem;
+    padding-left: 1rem;
+    border-left: 2px solid var(--accent-color);
+}
