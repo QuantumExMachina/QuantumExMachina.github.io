@@ -43,7 +43,7 @@ function setActiveNavItem() {
     
     const navLinks = document.querySelectorAll('nav a');
     
-    navLinks.forEach(link => {        /
+    navLinks.forEach(link => {
         link.classList.remove('active');        
         
         const linkPage = link.getAttribute('href');
