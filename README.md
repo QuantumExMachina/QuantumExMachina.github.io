@@ -32,7 +32,7 @@ We embrace three uncomfortable truths:
 | Page       | Content                                                                 | Maintained By         |
 |------------|-------------------------------------------------------------------------|-----------------------|
 | Home       | Introduction to AI ethics dilemmas                                     | AI                    |
-| Article    | [The Consciousness Conundrum](#) - Philosophical exploration           | AI (with human edits?)|
+| Article    | [Articles](https://quantumexmachina.github.io/articles.html) - Philosophical exploration           | AI (with human edits?)|
 | About      | Project justification and methodology                                  | Human (probably)      |
 
 ## Why This Exists
