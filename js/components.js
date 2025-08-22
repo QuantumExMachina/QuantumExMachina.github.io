@@ -286,7 +286,7 @@ function initReadingControlsPanel() {
     // CONTROLES DE FONTE
     const fontSection = document.createElement('div');
     fontSection.className = 'font-section';
-    fontSection.innerHTML = '<div style="text-align: center; font-size: 0.8rem; color: var(--text-secondary, #666); margin-bottom: 8px;">Texto</div>';
+    fontSection.innerHTML = '<div style="text-align: center; font-size: 0.8rem; color: var(--text-secondary, #666); margin-bottom: 8px;">Text</div>';
     
     const fontControls = document.createElement('div');
     fontControls.className = 'font-controls';
@@ -353,9 +353,9 @@ function initReadingControlsPanel() {
     `;
     controlsPanel.appendChild(separator);
     
-    // MODO FOCO
+    // Focus Mode
     const focusSection = document.createElement('div');
-    focusSection.innerHTML = '<div style="text-align: center; font-size: 0.8rem; color: var(--text-secondary, #666); margin-bottom: 8px;">Modo</div>';
+    focusSection.innerHTML = '<div style="text-align: center; font-size: 0.8rem; color: var(--text-secondary, #666); margin-bottom: 8px;">Mode</div>';
     
     const focusToggle = document.createElement('button');
     focusToggle.className = 'focus-toggle';
@@ -597,9 +597,8 @@ function toggleFocusMode(enabled) {
         if (enabled) {
             article.style.maxWidth = '650px';
             article.style.margin = '2rem auto';
-            article.style.transition = 'all 0.3s ease';
+            article.style.transition = 'all 0.3s ease';            
             
-            // CORREÇÃO: Manter tempo de leitura visível e bem posicionado no modo foco
             if (readingTime) {
                 readingTime.style.position = 'relative';
                 readingTime.style.zIndex = '999';
