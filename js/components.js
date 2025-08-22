@@ -297,9 +297,9 @@ function initReadingControlsPanel() {
     `;
     
     const fontSizes = [
-        { label: 'A⁻', size: '0.9', title: 'Diminuir texto' },
-        { label: 'A', size: '1.05', title: 'Texto padrão' },
-        { label: 'A⁺', size: '1.2', title: 'Aumentar texto' }
+        { label: 'A⁻', size: '0.9', title: 'Shrink text' },
+        { label: 'A', size: '1.05', title: 'Default text' },
+        { label: 'A⁺', size: '1.2', title: 'Increase text' }
     ];
     
     fontSizes.forEach(({ label, size, title }, index) => {
@@ -360,7 +360,7 @@ function initReadingControlsPanel() {
     const focusToggle = document.createElement('button');
     focusToggle.className = 'focus-toggle';
     focusToggle.innerHTML = '🎯';
-    focusToggle.title = 'Modo foco (F)';
+    focusToggle.title = 'Focus Mode (F)';
     focusToggle.style.cssText = `
         background: var(--gradient-secondary, linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%));
         border: none;
