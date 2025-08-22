@@ -392,7 +392,7 @@ function initFocusMode() {
     focusToggle.title = 'Modo foco (F)';
     focusToggle.style.cssText = `
         position: fixed;
-        top: 130px;
+        top: 180px;
         right: 20px;
         z-index: 999;
         background: var(--gradient-secondary);
