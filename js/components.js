@@ -206,8 +206,8 @@ function initReadingOptimizations() {
     // Reading time estimation
     addReadingTime();
     
-    // Font size adjustment (optional enhancement)
-    initFontSizeControls();
+    // Initialize reading controls panel
+    initReadingControlsPanel();
 }
 
 function addReadingTime() {
@@ -233,93 +233,318 @@ function addReadingTime() {
     }
 }
 
-// Font size controls for better accessibility
-function initFontSizeControls() {
+// NOVA FUNÇÃO: Painel de controles de leitura unificado
+function initReadingControlsPanel() {
     const article = document.querySelector('.single-article');
     if (!article) return;
     
-    // Create font size controls
+    // Criar container principal dos controles
+    const controlsPanel = document.createElement('div');
+    controlsPanel.className = 'reading-controls-panel';
+    controlsPanel.id = 'reading-controls-panel';
+    
+    // Recuperar posição salva ou usar posição padrão
+    const savedPosition = JSON.parse(localStorage.getItem('controls-position')) || { x: window.innerWidth - 80, y: 80 };
+    
+    controlsPanel.style.cssText = `
+        position: fixed;
+        top: ${savedPosition.y}px;
+        left: ${savedPosition.x}px;
+        z-index: 1000;
+        background: var(--reading-bg, #fff);
+        border-radius: 15px;
+        padding: 15px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--reading-border, #e0e0e0);
+        backdrop-filter: blur(10px);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-width: 60px;
+        transition: all 0.3s ease;
+        cursor: grab;
+        user-select: none;
+    `;
+    
+    // Adicionar título do painel (handle para arrastar)
+    const panelHeader = document.createElement('div');
+    panelHeader.className = 'panel-header';
+    panelHeader.innerHTML = '⚙️';
+    panelHeader.style.cssText = `
+        text-align: center;
+        font-size: 1.2rem;
+        cursor: grab;
+        padding: 5px;
+        border-radius: 8px;
+        background: var(--gradient-primary, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
+        color: white;
+        margin-bottom: 5px;
+    `;
+    
+    controlsPanel.appendChild(panelHeader);
+    
+    // CONTROLES DE FONTE
+    const fontSection = document.createElement('div');
+    fontSection.className = 'font-section';
+    fontSection.innerHTML = '<div style="text-align: center; font-size: 0.8rem; color: var(--text-secondary, #666); margin-bottom: 8px;">Texto</div>';
+    
     const fontControls = document.createElement('div');
     fontControls.className = 'font-controls';
     fontControls.style.cssText = `
-        position: fixed;
-        top: 80px;
-        right: 20px;
-        z-index: 999;
         display: flex;
         flex-direction: column;
         gap: 5px;
-        background: var(--reading-bg);
-        padding: 10px;
-        border-radius: 10px;
-        box-shadow: var(--shadow-medium);
-        border: 1px solid var(--reading-border);
-        opacity: 0.7;
-        transition: opacity 0.3s ease;
     `;
     
-    // Font size buttons
-    const sizes = [
+    const fontSizes = [
         { label: 'A⁻', size: '0.9', title: 'Diminuir texto' },
         { label: 'A', size: '1.05', title: 'Texto padrão' },
         { label: 'A⁺', size: '1.2', title: 'Aumentar texto' }
     ];
     
-    sizes.forEach(({ label, size, title }) => {
+    fontSizes.forEach(({ label, size, title }, index) => {
         const button = document.createElement('button');
         button.textContent = label;
         button.title = title;
+        button.className = `font-size-btn font-size-${index}`;
         button.style.cssText = `
-            background: var(--gradient-primary);
+            background: var(--gradient-primary, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
             color: white;
             border: none;
-            border-radius: 5px;
-            width: 30px;
-            height: 30px;
+            border-radius: 8px;
+            width: 100%;
+            height: 32px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         `;
         
         button.addEventListener('click', () => {
             changeFontSize(size);
-            // Highlight active button
-            fontControls.querySelectorAll('button').forEach(b => {
-                b.style.background = 'var(--gradient-primary)';
-            });
-            button.style.background = 'var(--secondary-color)';
+            updateActiveFontButton(index);
         });
         
         button.addEventListener('mouseenter', () => {
-            button.style.transform = 'scale(1.1)';
+            button.style.transform = 'scale(1.05)';
+            button.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
         });
         
         button.addEventListener('mouseleave', () => {
             button.style.transform = 'scale(1)';
+            button.style.boxShadow = 'none';
         });
         
         fontControls.appendChild(button);
     });
     
-    // Show/hide on hover
-    fontControls.addEventListener('mouseenter', () => {
-        fontControls.style.opacity = '1';
+    fontSection.appendChild(fontControls);
+    controlsPanel.appendChild(fontSection);
+    
+    // SEPARADOR
+    const separator = document.createElement('div');
+    separator.style.cssText = `
+        height: 1px;
+        background: var(--reading-border, #e0e0e0);
+        margin: 5px 0;
+    `;
+    controlsPanel.appendChild(separator);
+    
+    // MODO FOCO
+    const focusSection = document.createElement('div');
+    focusSection.innerHTML = '<div style="text-align: center; font-size: 0.8rem; color: var(--text-secondary, #666); margin-bottom: 8px;">Modo</div>';
+    
+    const focusToggle = document.createElement('button');
+    focusToggle.className = 'focus-toggle';
+    focusToggle.innerHTML = '🎯';
+    focusToggle.title = 'Modo foco (F)';
+    focusToggle.style.cssText = `
+        background: var(--gradient-secondary, linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%));
+        border: none;
+        border-radius: 8px;
+        width: 100%;
+        height: 40px;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    
+    let focusMode = false;
+    
+    focusToggle.addEventListener('click', () => {
+        focusMode = !focusMode;
+        toggleFocusMode(focusMode);
+        focusToggle.innerHTML = focusMode ? '👁️' : '🎯';
+        focusToggle.style.background = focusMode ? 
+            'var(--accent-color, #ff6b6b)' : 
+            'var(--gradient-secondary, linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%))';
     });
     
-    fontControls.addEventListener('mouseleave', () => {
-        fontControls.style.opacity = '0.7';
+    focusToggle.addEventListener('mouseenter', () => {
+        focusToggle.style.transform = 'scale(1.05)';
+        focusToggle.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
     });
     
-    document.body.appendChild(fontControls);
+    focusToggle.addEventListener('mouseleave', () => {
+        focusToggle.style.transform = 'scale(1)';
+        focusToggle.style.boxShadow = 'none';
+    });
     
-    // Load saved font size
+    focusSection.appendChild(focusToggle);
+    controlsPanel.appendChild(focusSection);
+    
+    // Adicionar painel ao body
+    document.body.appendChild(controlsPanel);
+    
+    // Inicializar funcionalidade de arrastar
+    initDraggableControls(controlsPanel, panelHeader);
+    
+    // Carregar configurações salvas
     const savedFontSize = localStorage.getItem('article-font-size') || '1.05';
     changeFontSize(savedFontSize);
     
-    // Highlight default button
-    const defaultButton = fontControls.children[1];
-    defaultButton.style.background = 'var(--secondary-color)';
+    // Marcar botão ativo inicial
+    const defaultButtonIndex = fontSizes.findIndex(f => f.size === savedFontSize);
+    updateActiveFontButton(defaultButtonIndex >= 0 ? defaultButtonIndex : 1);
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (!document.querySelector('.single-article')) return;
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        
+        switch(e.key.toLowerCase()) {
+            case 'f':
+                if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+                    e.preventDefault();
+                    focusToggle.click();
+                }
+                break;
+            case 't':
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    document.querySelector('.theme-toggle')?.click();
+                }
+                break;
+            case 'arrowup':
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+                break;
+            case 'arrowdown':
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                }
+                break;
+            case ' ':
+                e.preventDefault();
+                window.scrollBy({ top: window.innerHeight * 0.8, behavior: 'smooth' });
+                break;
+        }
+    });
+}
+
+function updateActiveFontButton(activeIndex) {
+    const buttons = document.querySelectorAll('.font-size-btn');
+    buttons.forEach((btn, index) => {
+        if (index === activeIndex) {
+            btn.style.background = 'var(--secondary-color, #4ecdc4)';
+            btn.style.boxShadow = '0 0 0 2px var(--accent-color, #ff6b6b)';
+        } else {
+            btn.style.background = 'var(--gradient-primary, linear-gradient(135deg, #667eea 0%, #764ba2 100%))';
+            btn.style.boxShadow = 'none';
+        }
+    });
+}
+
+function initDraggableControls(panel, handle) {
+    let isDragging = false;
+    let currentX;
+    let currentY;
+    let initialX;
+    let initialY;
+    let xOffset = 0;
+    let yOffset = 0;
+    
+    // Recuperar offset salvo
+    const savedPosition = JSON.parse(localStorage.getItem('controls-position'));
+    if (savedPosition) {
+        xOffset = savedPosition.x;
+        yOffset = savedPosition.y;
+    }
+    
+    handle.addEventListener('mousedown', dragStart);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', dragEnd);
+    
+    // Touch events para mobile
+    handle.addEventListener('touchstart', dragStart);
+    document.addEventListener('touchmove', drag);
+    document.addEventListener('touchend', dragEnd);
+    
+    function dragStart(e) {
+        if (e.type === 'touchstart') {
+            initialX = e.touches[0].clientX - xOffset;
+            initialY = e.touches[0].clientY - yOffset;
+        } else {
+            initialX = e.clientX - xOffset;
+            initialY = e.clientY - yOffset;
+        }
+        
+        if (e.target === handle) {
+            isDragging = true;
+            panel.style.cursor = 'grabbing';
+            handle.style.cursor = 'grabbing';
+        }
+    }
+    
+    function drag(e) {
+        if (isDragging) {
+            e.preventDefault();
+            
+            if (e.type === 'touchmove') {
+                currentX = e.touches[0].clientX - initialX;
+                currentY = e.touches[0].clientY - initialY;
+            } else {
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+            }
+            
+            xOffset = currentX;
+            yOffset = currentY;
+            
+            // Limitar movimento dentro da viewport
+            const maxX = window.innerWidth - panel.offsetWidth;
+            const maxY = window.innerHeight - panel.offsetHeight;
+            
+            xOffset = Math.max(0, Math.min(maxX, xOffset));
+            yOffset = Math.max(0, Math.min(maxY, yOffset));
+            
+            panel.style.left = xOffset + 'px';
+            panel.style.top = yOffset + 'px';
+        }
+    }
+    
+    function dragEnd(e) {
+        if (isDragging) {
+            isDragging = false;
+            panel.style.cursor = 'grab';
+            handle.style.cursor = 'grab';
+            
+            // Salvar posição
+            localStorage.setItem('controls-position', JSON.stringify({
+                x: xOffset,
+                y: yOffset
+            }));
+        }
+    }
 }
 
 function changeFontSize(size) {
@@ -342,102 +567,11 @@ function changeFontSize(size) {
     localStorage.setItem('article-font-size', size);
 }
 
-// Keyboard shortcuts for better navigation
-function initKeyboardShortcuts() {
-    document.addEventListener('keydown', (e) => {
-        // Only on article pages
-        if (!document.querySelector('.single-article')) return;
-        
-        // Ignore if user is typing in an input
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-        
-        switch(e.key) {
-            case 'ArrowUp':
-                if (e.ctrlKey || e.metaKey) {
-                    e.preventDefault();
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-                break;
-            case 'ArrowDown':
-                if (e.ctrlKey || e.metaKey) {
-                    e.preventDefault();
-                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-                }
-                break;
-            case ' ':
-                // Space bar for page down (like in many readers)
-                e.preventDefault();
-                window.scrollBy({ top: window.innerHeight * 0.8, behavior: 'smooth' });
-                break;
-            case 't':
-                // 't' key to toggle theme
-                if (e.ctrlKey || e.metaKey) {
-                    e.preventDefault();
-                    document.querySelector('.theme-toggle')?.click();
-                }
-                break;
-        }
-    });
-}
-
-// Focus mode for distraction-free reading
-function initFocusMode() {
-    const article = document.querySelector('.single-article');
-    if (!article) return;
-    
-    // Create focus mode toggle
-    const focusToggle = document.createElement('button');
-    focusToggle.className = 'focus-toggle';
-    focusToggle.innerHTML = '🎯';
-    focusToggle.title = 'Modo foco (F)';
-    focusToggle.style.cssText = `
-        position: fixed;
-        top: 180px;
-        right: 20px;
-        z-index: 999;
-        background: var(--gradient-secondary);
-        border: none;
-        border-radius: 50%;
-        width: 45px;
-        height: 45px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: var(--shadow-medium);
-        transition: all 0.3s ease;
-        color: white;
-        font-size: 1.1rem;
-    `;
-    
-    let focusMode = false;
-    
-    focusToggle.addEventListener('click', () => {
-        focusMode = !focusMode;
-        toggleFocusMode(focusMode);
-        focusToggle.innerHTML = focusMode ? '👁️' : '🎯';
-        focusToggle.style.background = focusMode ? 'var(--accent-color)' : 'var(--gradient-secondary)';
-    });
-    
-    // Keyboard shortcut 'F' for focus mode
-    document.addEventListener('keydown', (e) => {
-        if (e.key.toLowerCase() === 'f' && !e.ctrlKey && !e.metaKey && !e.altKey) {
-            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-                e.preventDefault();
-                focusToggle.click();
-            }
-        }
-    });
-    
-    document.body.appendChild(focusToggle);
-}
-
 function toggleFocusMode(enabled) {
     const elementsToHide = [
         'nav',
         'footer', 
         '.theme-toggle',
-        '.font-controls',
         '.reading-progress'
     ];
     
@@ -457,14 +591,39 @@ function toggleFocusMode(enabled) {
     
     // Adjust article container in focus mode
     const article = document.querySelector('.single-article');
+    const readingTime = document.querySelector('.reading-time');
+    
     if (article) {
         if (enabled) {
             article.style.maxWidth = '650px';
             article.style.margin = '2rem auto';
             article.style.transition = 'all 0.3s ease';
+            
+            // CORREÇÃO: Manter tempo de leitura visível e bem posicionado no modo foco
+            if (readingTime) {
+                readingTime.style.position = 'relative';
+                readingTime.style.zIndex = '999';
+                readingTime.style.display = 'inline-block';
+                readingTime.style.background = 'var(--reading-bg, rgba(255, 255, 255, 0.9))';
+                readingTime.style.padding = '4px 8px';
+                readingTime.style.borderRadius = '12px';
+                readingTime.style.border = '1px solid var(--reading-border, #e0e0e0)';
+                readingTime.style.backdropFilter = 'blur(5px)';
+            }
         } else {
             article.style.maxWidth = '';
             article.style.margin = '';
+            
+            // Restaurar estilo normal do tempo de leitura
+            if (readingTime) {
+                readingTime.style.position = '';
+                readingTime.style.zIndex = '';
+                readingTime.style.background = '';
+                readingTime.style.padding = '';
+                readingTime.style.borderRadius = '';
+                readingTime.style.border = '';
+                readingTime.style.backdropFilter = '';
+            }
         }
     }
 }
@@ -473,8 +632,7 @@ function toggleFocusMode(enabled) {
 document.addEventListener('DOMContentLoaded', function() {
     // Add a small delay to ensure all elements are loaded
     setTimeout(() => {
-        initKeyboardShortcuts();
-        initFocusMode();
+        initPrintOptimization();
     }, 500);
 });
 
@@ -484,8 +642,7 @@ function initPrintOptimization() {
     style.textContent = `
         @media print {
             .theme-toggle,
-            .font-controls,
-            .focus-toggle,
+            .reading-controls-panel,
             .reading-progress,
             nav,
             footer,
@@ -520,10 +677,13 @@ function initPrintOptimization() {
                 background: #f5f5f5 !important;
                 border-left: 3px solid #333 !important;
             }
+            
+            .reading-time {
+                background: none !important;
+                border: none !important;
+                padding: 0 !important;
+            }
         }
     `;
     document.head.appendChild(style);
 }
-
-// Call print optimization
-initPrintOptimization();
